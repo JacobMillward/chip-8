@@ -77,11 +77,7 @@ impl Chip8 {
     }
 
     pub fn load_rom(&mut self, rom: &[u8; 3584]) {
-        self.load_into_memory(rom, 0x200)
-    }
-
-    pub fn load_into_memory(&mut self, data: &[u8], offset_index: u16) {
-        self.memory[offset_index as usize..].clone_from_slice(data)
+        self.memory[0x200..].clone_from_slice(rom)
     }
 
     pub fn update_timers(&mut self) {
@@ -126,7 +122,7 @@ impl Chip8 {
             (0, 0, 0xE, 0) => {
                 self.gfx = [0; SCREEN_HEIGHT * SCREEN_WIDTH];
                 self.registers.inc_pc();
-            },
+            }
             // RET
             (0, 0, 0xE, 0xE) => self.registers.pc = self.return_stack.pop(),
             // JP addr
@@ -135,64 +131,184 @@ impl Chip8 {
             (2, _, _, _) => {
                 self.return_stack.push(self.registers.pc);
                 self.registers.pc = nnn;
-            },
+            }
             // SE Vx, byte
             (3, _, _, _) => {
                 if vx == kk {
                     self.registers.inc_pc();
-                    self.registers.inc_pc();
-                } else {
-                    self.registers.inc_pc();
                 }
-            },
+                self.registers.inc_pc();
+            }
             // SNE Vx, byte
             (4, _, _, _) => {
                 if vx != kk {
                     self.registers.inc_pc();
-                    self.registers.inc_pc();
-                } else {
-                    self.registers.inc_pc();
                 }
-            },
+                self.registers.inc_pc();
+            }
             // SE Vx, Vy
             (5, _, _, 0) => {
                 if vx == vy {
                     self.registers.inc_pc();
-                    self.registers.inc_pc();
-                } else {
-                    self.registers.inc_pc();
                 }
-            },
+                self.registers.inc_pc();
+            }
             // LD Vx, byte
             (6, _, _, _) => {
                 self.registers.v[x] = kk;
                 self.registers.inc_pc();
-            },
+            }
             // ADD Vx, byte
             (7, _, _, _) => {
                 self.registers.v[x] += kk;
                 self.registers.inc_pc();
-            },
+            }
             // LD Vx, Vy
             (8, _, _, 0) => {
                 self.registers.v[x] = vy;
                 self.registers.inc_pc();
-            },
+            }
             // OR Vx, Vy
             (8, _, _, 1) => {
                 self.registers.v[x] = vx | vy;
                 self.registers.inc_pc();
-            },
+            }
             // AND Vx, Vy
             (8, _, _, 2) => {
                 self.registers.v[x] = vx & vy;
                 self.registers.inc_pc();
-            },
+            }
             // XOR Vx, Vy
             (8, _, _, 3) => {
                 self.registers.v[x] = vx ^ vy;
                 self.registers.inc_pc();
-            },
+            }
+            // ADD Vx, Vy
+            (8, _, _, 4) => {
+                let sum: u16 = vx as u16 + vy as u16;
+                self.registers.v[x] = sum as u8;
+                self.registers.v[0xF] = if sum > 0xFF { 1 } else { 0 };
+                self.registers.inc_pc();
+            }
+            // SUB Vx, Vy
+            (8, _, _, 5) => {
+                self.registers.v[0xF] = if vx > vy { 1 } else { 0 };
+                self.registers.v[x] = (vx as i8 - vy as i8) as u8;
+                self.registers.inc_pc();
+            }
+            // SHR Vx
+            (8, _, _, 6) => {
+                self.registers.v[0xF] = vx & 0x1;
+                self.registers.v[x] = vx >> 1;
+                self.registers.inc_pc();
+            }
+            // SUBN Vx, Vy
+            (8, _, _, 7) => {
+                self.registers.v[0xF] = if vy > vx { 1 } else { 0 };
+                self.registers.v[x] = (vy as i8 - vx as i8) as u8;
+                self.registers.inc_pc();
+            }
+            // SHR Vx
+            (8, _, _, 0xE) => {
+                self.registers.v[0xF] = vx & 0x80;
+                self.registers.v[x] = vx << 1;
+                self.registers.inc_pc();
+            }
+            // SNE Vx, Vy
+            (9, _, _, 0) => {
+                if vx != vy {
+                    self.registers.inc_pc();
+                }
+                self.registers.inc_pc();
+            }
+            // LD I, addr
+            (0xA, _, _, _) => {
+                self.registers.i = nnn;
+                self.registers.inc_pc();
+            }
+            // JP V0, addr
+            (0xB, _, _, _) => {
+                self.registers.pc = self.registers.v[0] as u16 + nnn;
+            }
+            // RND Vx, byte
+            (0xC, _, _, _) => {
+                // TODO: Make actually random
+                self.registers.v[x] = kk;
+                self.registers.inc_pc();
+            }
+            // DRW Vx, Vy, nibble
+            (0xD, _, _, _) => {
+                // TODO: Implement drawing
+                self.registers.inc_pc();
+            }
+            // SKP Vx
+            (0xE, _, 9, 0xE) => {
+                if self.keys.contains(&vx) {
+                    self.registers.inc_pc();
+                }
+                self.registers.inc_pc();
+            }
+            // SKNP Vx
+            (0xE, _, 0xA, 1) => {
+                if !self.keys.contains(&vx) {
+                    self.registers.inc_pc();
+                }
+                self.registers.inc_pc();
+            }
+            // LD Vx, DT
+            (0xF, _, 0, 7) => {
+                self.registers.v[x] = self.timers.delay_timer;
+                self.registers.inc_pc();
+            }
+            // LD Vx, K
+            (0xF, _, 0, 0xA) => {
+                let pressed_key = self.keys.iter().find(|&k| *k != 0);
+                if let Some(key_value) = pressed_key {
+                    self.registers.v[x] = *key_value;
+                    self.registers.inc_pc();
+                }
+            }
+            // LD DT, Vx
+            (0xF, _, 1, 5) => {
+                self.timers.delay_timer = vx;
+                self.registers.inc_pc();
+            }
+            // LD ST, Vx
+            (0xF, _, 1, 8) => {
+                self.timers.sound_timer = vx;
+                self.registers.inc_pc();
+            }
+            // ADD I, Vx
+            (0xF, _, 1, 0xE) => {
+                self.registers.i += vx as u16;
+                self.registers.inc_pc();
+            }
+            // LD F, Vx
+            (0xF, _, 2, 9) => {
+                // TODO: Implement sprite font
+                self.registers.inc_pc();
+            }
+            // LD B, Vx
+            (0xF, _, 3, 3) => {
+                self.memory[self.registers.i as usize] = vx / 100;
+                self.memory[(self.registers.i + 1) as usize] = (vx % 100) / 10;
+                self.memory[(self.registers.i + 2) as usize] = vx % 10;
+                self.registers.inc_pc();
+            }
+            // LD [I], Vx
+            (0xF, _, 5, 5) => {
+                for idx in 0..x {
+                    self.memory[(self.registers.i + idx as u16) as usize] = self.registers.v[idx];
+                }
+                self.registers.inc_pc();
+            }
+            // LD Vx, [I]
+            (0xF, _, 6, 5) => {
+                for idx in 0..x {
+                    self.registers.v[idx] = self.memory[(self.registers.i + idx as u16) as usize];
+                }
+                self.registers.inc_pc();
+            }
 
             (_, _, _, _) => (),
         }

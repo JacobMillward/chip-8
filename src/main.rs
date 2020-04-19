@@ -30,7 +30,7 @@ fn main() {
             let keys = get_chip8_keys(raw_keys);
             chip.set_keys(&keys);
 
-            chip.execute_next_cycle();
+            chip.execute_cycle();
 
             chip.update_timers();
 
@@ -82,8 +82,8 @@ fn get_chip8_keys(keys: Vec<Key>) -> [u8; 16] {
             _ => None,
         };
 
-        if converted.is_some() {
-            result[last_set_index] = converted.unwrap();
+        if let Some(k) = converted {
+            result[last_set_index] = k;
             last_set_index += 1;
         }
     }

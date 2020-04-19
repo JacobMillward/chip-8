@@ -2,12 +2,10 @@ extern crate minifb;
 
 use std::time::{Duration, Instant};
 mod chip8;
-use chip8::Chip8;
+use chip8::{Chip8, SCREEN_WIDTH, SCREEN_HEIGHT};
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
 
 const TARGET_UPDATE_RATE: u64 = 60;
-const SCREEN_WIDTH: usize = 64;
-const SCREEN_HEIGHT: usize = 32;
 
 fn main() {
     let mut chip = Chip8::new();

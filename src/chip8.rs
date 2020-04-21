@@ -238,7 +238,31 @@ impl Chip8 {
             }
             // DRW Vx, Vy, nibble
             (0xD, _, _, _) => {
-                // TODO: Implement drawing
+                let (start, end) = (self.registers.i as usize, (self.registers.i + n as u16) as usize);
+                let sprite = &self.memory[start..end];
+                
+                let mut was_erased = false;
+
+                for sprite_y in 0..n as usize {
+                    let pixel = sprite[sprite_y];
+                    let pixel_y = (vy as usize + sprite_y) % SCREEN_HEIGHT;
+                    
+                    for sprite_x in 0..8 as usize {
+                        let pixel_x = (vx as usize + sprite_x) % SCREEN_WIDTH;
+                        let gfx_idx = (pixel_y * SCREEN_HEIGHT) + pixel_x;
+
+                        let sprite_val = ((pixel & 0x80) >> sprite_x) > 0;
+                        let old_val = self.gfx[gfx_idx] > 0;
+
+                        self.gfx[gfx_idx] = if old_val ^ sprite_val { 1 } else { 0 };
+
+                        if old_val && sprite_val {
+                            was_erased = true;
+                        }
+                    }
+                }
+
+                self.registers.v[0xF] = if was_erased { 1 } else { 0 };
                 self.registers.inc_pc();
             }
             // SKP Vx

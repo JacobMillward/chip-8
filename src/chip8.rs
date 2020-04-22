@@ -76,8 +76,14 @@ impl Chip8 {
         }
     }
 
-    pub fn load_rom(&mut self, rom: &[u8; 3584]) {
-        self.memory[0x200..].clone_from_slice(rom)
+    pub fn load_rom(&mut self, rom: &Vec<u8>) {
+        if rom.len() > 3584 {
+            panic!("Cannot load rom with size greater than 3584 bytes");
+        }
+
+        for i in 0..rom.len() {
+            self.memory[0x200 + i] = rom[i];
+        }
     }
 
     pub fn update_timers(&mut self) {

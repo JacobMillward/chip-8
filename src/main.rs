@@ -1,14 +1,23 @@
 extern crate minifb;
 
-use std::time::{Duration, Instant};
+use std::{
+    fs::File,
+    io::Read,
+    time::{Duration, Instant},
+};
 mod chip8;
-use chip8::{Chip8, SCREEN_WIDTH, SCREEN_HEIGHT};
+use chip8::{Chip8, SCREEN_HEIGHT, SCREEN_WIDTH};
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
 
 const TARGET_UPDATE_RATE: u64 = 60;
 
 fn main() {
+    let mut file = File::open("data/Chip8_Picture.ch8").unwrap();
+    let mut data = Vec::<u8>::new();
+    file.read_to_end(&mut data).expect("File not found!");
     let mut chip = Chip8::new();
+
+    chip.load_rom(&data);
 
     let mut buffer: Vec<u32> = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
 
@@ -22,8 +31,7 @@ fn main() {
     let mut last_update = Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        if Instant::now() - last_update >= Duration::from_millis((1 / TARGET_UPDATE_RATE) * 1000)
-        {
+        if Instant::now() - last_update >= Duration::from_millis((1 / TARGET_UPDATE_RATE) * 1000) {
             let raw_keys = window.get_keys_pressed(KeyRepeat::Yes).unwrap();
             let keys = get_chip8_keys(raw_keys);
             chip.set_keys(&keys);
@@ -62,17 +70,17 @@ fn get_chip8_keys(keys: Vec<Key>) -> [u8; 16] {
             Key::Key2 => Some(0x2),
             Key::Key3 => Some(0x3),
             Key::Key4 => Some(0xC),
-    
+
             Key::Q => Some(0x4),
             Key::W => Some(0x5),
             Key::E => Some(0x6),
             Key::R => Some(0xD),
-    
+
             Key::A => Some(0x7),
             Key::S => Some(0x8),
             Key::D => Some(0x9),
             Key::F => Some(0xE),
-    
+
             Key::Z => Some(0xA),
             Key::X => Some(0x0),
             Key::C => Some(0xB),

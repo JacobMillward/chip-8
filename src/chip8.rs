@@ -60,7 +60,7 @@ pub struct Chip8 {
 
 impl Chip8 {
     pub fn new() -> Self {
-        Self {
+        let mut chip8 = Self {
             memory: [0; 4096],
             registers: Registers {
                 v: [0; 16],
@@ -78,6 +78,35 @@ impl Chip8 {
             gfx: [0; SCREEN_HEIGHT * SCREEN_WIDTH],
             keys: [0; 16],
             rng: rand::thread_rng(),
+        };
+
+        chip8.load_sprite_font();
+
+        chip8
+    }
+
+    fn load_sprite_font(&mut self) {
+        const SPRITE_FONT: [u8; 80] = [
+            0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+            0x20, 0x60, 0x20, 0x20, 0x70, // 1
+            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+            0xF0, 0x80, 0xF0, 0x80, 0x80, // F
+        ];
+
+        for i in 0..80 {
+            self.memory[i] = SPRITE_FONT[i];
         }
     }
 
@@ -324,7 +353,7 @@ impl Chip8 {
             }
             // LD F, Vx
             (0xF, _, 2, 9) => {
-                // TODO: Implement sprite font
+                self.registers.i = vx as u16 * 5;
                 self.registers.inc_pc();
             }
             // LD B, Vx

@@ -1,3 +1,6 @@
+mod return_stack;
+use return_stack::ReturnStack;
+
 use rand::rngs::ThreadRng;
 use rand::Rng;
 
@@ -21,33 +24,6 @@ struct Timers {
     sound_timer: u8,
 }
 
-struct ReturnStack {
-    stack: [u16; 16],
-    sp: u8,
-}
-
-impl ReturnStack {
-    pub fn push(&mut self, val: u16) {
-        if self.sp as usize == self.stack.len() - 1 {
-            panic!("Chip8 Stack Overflow");
-        }
-
-        self.stack[self.sp as usize] = val;
-        self.sp += 1;
-    }
-
-    pub fn pop(&mut self) -> u16 {
-        if self.sp == 0 {
-            panic!("Chip8 Stack Underflow");
-        }
-
-        let val = self.stack[self.sp as usize];
-        self.sp -= 1;
-
-        val
-    }
-}
-
 pub struct Chip8 {
     memory: [u8; 4096],
     registers: Registers,
@@ -67,10 +43,7 @@ impl Chip8 {
                 i: 0,
                 pc: 0x200,
             },
-            return_stack: ReturnStack {
-                stack: [0; 16],
-                sp: 0,
-            },
+            return_stack: ReturnStack::new(),
             timers: Timers {
                 delay_timer: 0,
                 sound_timer: 0,
@@ -359,8 +332,8 @@ impl Chip8 {
             // LD B, Vx
             (0xF, _, 3, 3) => {
                 self.memory[self.registers.i as usize] = vx / 100;
-                self.memory[(self.registers.i + 1) as usize] = (vx % 100) / 10;
-                self.memory[(self.registers.i + 2) as usize] = vx % 10;
+                self.memory[(self.registers.i + 1) as usize] = (vx / 10) % 10;
+                self.memory[(self.registers.i + 2) as usize] = (vx % 100) % 10;
                 self.registers.inc_pc();
             }
             // LD [I], Vx

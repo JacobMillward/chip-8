@@ -10,7 +10,7 @@ use chip8::{Chip8, SCREEN_HEIGHT, SCREEN_WIDTH};
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
 
 const CPU_CLOCK_SPEED_HZ: u64 = 500;
-const CPU_UPDATE_RATE_MS: u64  = (1 / CPU_CLOCK_SPEED_HZ) * 1000;
+const CPU_UPDATE_RATE_MS: u64 = (1 / CPU_CLOCK_SPEED_HZ) * 1000;
 
 fn main() {
     let mut file = File::open("data/Chip8_Picture.ch8").unwrap();
@@ -52,7 +52,6 @@ fn main() {
 
             last_timer_update = Instant::now();
         }
-        
     }
 }
 

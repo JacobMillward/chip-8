@@ -1,3 +1,6 @@
+use rand::rngs::ThreadRng;
+use rand::Rng;
+
 pub const SCREEN_WIDTH: usize = 64;
 pub const SCREEN_HEIGHT: usize = 32;
 
@@ -52,6 +55,7 @@ pub struct Chip8 {
     timers: Timers,
     gfx: [u8; SCREEN_HEIGHT * SCREEN_WIDTH],
     keys: [u8; 16],
+    rng: ThreadRng,
 }
 
 impl Chip8 {
@@ -73,6 +77,7 @@ impl Chip8 {
             },
             gfx: [0; SCREEN_HEIGHT * SCREEN_WIDTH],
             keys: [0; 16],
+            rng: rand::thread_rng(),
         }
     }
 
@@ -238,21 +243,25 @@ impl Chip8 {
             }
             // RND Vx, byte
             (0xC, _, _, _) => {
-                // TODO: Make actually random
-                self.registers.v[x] = kk;
+                let random_number = self.rng.gen_range(0, 256) as u8;
+
+                self.registers.v[x] = random_number & kk;
                 self.registers.inc_pc();
             }
             // DRW Vx, Vy, nibble
             (0xD, _, _, _) => {
-                let (start, end) = (self.registers.i as usize, (self.registers.i + n as u16) as usize);
+                let (start, end) = (
+                    self.registers.i as usize,
+                    (self.registers.i + n as u16) as usize,
+                );
                 let sprite = &self.memory[start..end];
-                
+
                 let mut was_erased = false;
 
                 for sprite_y in 0..n as usize {
                     let pixel_row = sprite[sprite_y];
                     let pixel_y = (vy as usize + sprite_y) % SCREEN_HEIGHT;
-                    
+
                     for sprite_x in 0..8 as usize {
                         let pixel_x = (vx as usize + sprite_x) % SCREEN_WIDTH;
                         let gfx_idx = (pixel_y * SCREEN_WIDTH) + pixel_x;

@@ -9,7 +9,8 @@ mod chip8;
 use chip8::{Chip8, SCREEN_HEIGHT, SCREEN_WIDTH};
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
 
-const TARGET_UPDATE_RATE: u64 = 60;
+const CPU_CLOCK_SPEED_HZ: u64 = 500;
+const CPU_UPDATE_RATE_MS: u64  = (1 / CPU_CLOCK_SPEED_HZ) * 1000;
 
 fn main() {
     let mut file = File::open("data/Chip8_Picture.ch8").unwrap();
@@ -25,29 +26,33 @@ fn main() {
         panic!("{}", e);
     });
 
-    // Limit to max ~60fps
-    window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-
     let mut last_update = Instant::now();
+    let mut last_timer_update = Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        if Instant::now() - last_update >= Duration::from_millis((1 / TARGET_UPDATE_RATE) * 1000) {
+        if (Instant::now() - last_update) > Duration::from_millis(CPU_UPDATE_RATE_MS)
+        {
             let raw_keys = window.get_keys_pressed(KeyRepeat::Yes).unwrap();
             let keys = get_chip8_keys(raw_keys);
             chip.set_keys(&keys);
 
             chip.execute_cycle();
 
-            chip.update_timers();
-
             last_update = Instant::now();
         }
 
-        convert_display_buffer(chip.get_display_buffer(), &mut buffer);
+        if (Instant::now() - last_timer_update) > Duration::from_millis((1 / 60) * 1000) {
+            chip.update_timers();
 
-        window
-            .update_with_buffer(&buffer, SCREEN_WIDTH, SCREEN_HEIGHT)
-            .unwrap();
+            convert_display_buffer(chip.get_display_buffer(), &mut buffer);
+
+            window
+                .update_with_buffer(&buffer, SCREEN_WIDTH, SCREEN_HEIGHT)
+                .unwrap();
+
+            last_timer_update = Instant::now();
+        }
+        
     }
 }
 

@@ -100,7 +100,7 @@ impl Chip8 {
         }
 
         if self.timers.sound_timer > 0 {
-            self.timers.delay_timer -= 1;
+            self.timers.sound_timer -= 1;
         }
     }
 

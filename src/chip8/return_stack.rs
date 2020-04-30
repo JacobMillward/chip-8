@@ -24,9 +24,7 @@ impl ReturnStack {
             panic!("Chip8 Stack Underflow");
         }
 
-        let val = self.stack[self.sp as usize];
         self.sp -= 1;
-
-        val
+        self.stack[self.sp as usize]
     }
 }

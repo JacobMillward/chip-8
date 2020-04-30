@@ -138,11 +138,16 @@ impl Chip8 {
                 self.registers.inc_pc();
             }
             // RET
-            (0, 0, 0xE, 0xE) => self.registers.pc = self.return_stack.pop(),
+            (0, 0, 0xE, 0xE) => {
+                self.registers.pc = self.return_stack.pop();
+            }
             // JP addr
-            (1, _, _, _) => self.registers.pc = nnn,
+            (1, _, _, _) => {
+                self.registers.pc = nnn;
+            }
             // CALL addr
             (2, _, _, _) => {
+                self.registers.inc_pc();
                 self.return_stack.push(self.registers.pc);
                 self.registers.pc = nnn;
             }

@@ -3,6 +3,7 @@ use return_stack::ReturnStack;
 
 use rand::rngs::ThreadRng;
 use rand::Rng;
+use std::num::Wrapping;
 
 pub const SCREEN_WIDTH: usize = 64;
 pub const SCREEN_HEIGHT: usize = 32;
@@ -173,7 +174,7 @@ impl Chip8 {
             }
             // ADD Vx, byte
             (7, _, _, _) => {
-                self.registers.v[x] += kk;
+                self.registers.v[x] = (Wrapping(vx) + Wrapping(kk)).0;
                 self.registers.inc_pc();
             }
             // LD Vx, Vy
@@ -206,7 +207,7 @@ impl Chip8 {
             // SUB Vx, Vy
             (8, _, _, 5) => {
                 self.registers.v[0xF] = if vx > vy { 1 } else { 0 };
-                self.registers.v[x] = (vx as i8 - vy as i8) as u8;
+                self.registers.v[x] = (Wrapping(vx) - Wrapping(vy)).0;
                 self.registers.inc_pc();
             }
             // SHR Vx

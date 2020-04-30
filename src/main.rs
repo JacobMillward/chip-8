@@ -13,7 +13,7 @@ const CPU_CLOCK_SPEED_HZ: u64 = 500;
 const CPU_UPDATE_RATE_MS: u64 = (1 / CPU_CLOCK_SPEED_HZ) * 1000;
 
 fn main() {
-    let mut file = File::open("data/Chip8_Picture.ch8").unwrap();
+    let mut file = File::open("data/test_opcode.ch8").unwrap();
     let mut data = Vec::<u8>::new();
     file.read_to_end(&mut data).expect("File not found!");
     let mut chip = Chip8::new();

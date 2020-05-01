@@ -7,13 +7,13 @@ use std::{
 };
 mod chip8;
 use chip8::{Chip8, SCREEN_HEIGHT, SCREEN_WIDTH};
-use minifb::{Key, KeyRepeat, Window, WindowOptions};
+use minifb::{Key, Window, WindowOptions};
 
 const CPU_CLOCK_SPEED_HZ: u64 = 500;
 const CPU_UPDATE_RATE_MS: u64 = (1 / CPU_CLOCK_SPEED_HZ) * 1000;
 
 fn main() {
-    let mut file = File::open("data/test_opcode.ch8").unwrap();
+    let mut file = File::open("data/Pong.ch8").unwrap();
     let mut data = Vec::<u8>::new();
     file.read_to_end(&mut data).expect("File not found!");
     let mut chip = Chip8::new();
@@ -30,9 +30,8 @@ fn main() {
     let mut last_timer_update = Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        if (Instant::now() - last_update) > Duration::from_millis(CPU_UPDATE_RATE_MS)
-        {
-            let raw_keys = window.get_keys_pressed(KeyRepeat::Yes).unwrap();
+        if (Instant::now() - last_update) > Duration::from_millis(CPU_UPDATE_RATE_MS) {
+            let raw_keys = window.get_keys().unwrap();
             let keys = get_chip8_keys(raw_keys);
             chip.set_keys(&keys);
 

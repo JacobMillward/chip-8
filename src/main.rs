@@ -9,8 +9,8 @@ mod chip8;
 use chip8::{Chip8, SCREEN_HEIGHT, SCREEN_WIDTH};
 use minifb::{Key, Window, WindowOptions};
 
-const CPU_CLOCK_SPEED_HZ: u64 = 500;
-const CPU_UPDATE_RATE_MS: u64 = (1 / CPU_CLOCK_SPEED_HZ) * 1000;
+const CPU_CLOCK_SPEED_HZ: f64 = 500.0;
+const FRAMERATE_TARGET_HZ: f64 = 60.0;
 
 fn main() {
     let mut file = File::open("data/Pong.ch8").unwrap();
@@ -26,21 +26,25 @@ fn main() {
         panic!("{}", e);
     });
 
-    let mut last_update = Instant::now();
+    let target_cpu_update_duration: Duration = Duration::from_secs_f64(1_f64 / CPU_CLOCK_SPEED_HZ);
+    let target_frame_duration: Duration = Duration::from_secs_f64(1_f64 / FRAMERATE_TARGET_HZ);
+    let mut last_cpu_update = Instant::now();
     let mut last_timer_update = Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        if (Instant::now() - last_update) > Duration::from_millis(CPU_UPDATE_RATE_MS) {
-            let raw_keys = window.get_keys().unwrap();
+        let now = Instant::now();
+
+        if (now - last_cpu_update) > target_cpu_update_duration {
+            let raw_keys = window.get_keys();
             let keys = get_chip8_keys(raw_keys);
             chip.set_keys(&keys);
 
             chip.execute_cycle();
 
-            last_update = Instant::now();
+            last_cpu_update = now;
         }
 
-        if (Instant::now() - last_timer_update) > Duration::from_millis((1 / 60) * 1000) {
+        if (Instant::now() - last_timer_update) > target_frame_duration {
             chip.update_timers();
 
             convert_display_buffer(chip.get_display_buffer(), &mut buffer);
@@ -49,13 +53,13 @@ fn main() {
                 .update_with_buffer(&buffer, SCREEN_WIDTH, SCREEN_HEIGHT)
                 .unwrap();
 
-            last_timer_update = Instant::now();
+            last_timer_update = now;
         }
     }
 }
 
-fn convert_display_buffer(src: &[u8; SCREEN_WIDTH * SCREEN_HEIGHT], dest: &mut Vec<u32>) {
-    for (index, val) in src.into_iter().enumerate() {
+fn convert_display_buffer(src: &[u8; SCREEN_WIDTH * SCREEN_HEIGHT], dest: &mut [u32]) {
+    for (index, val) in src.iter().enumerate() {
         dest[index] = match val {
             0 => 0x0,
             1 => 0xffffff,

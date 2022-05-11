@@ -1,0 +1,53 @@
+name: Build
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      upload_artifacts:
+        required: false
+        type: boolean
+      release:
+        required: false
+        type: boolean
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+            profile: minimal
+            toolchain: stable
+            default: true
+
+      - name: cargo build
+        shell: bash
+        run: |
+          if [ ${{inputs.release}} ]; then
+            cargo build --release
+          else
+            cargo build
+          fi
+
+      - name: Upload build artifact (Windows)
+        uses: actions/upload-artifact@v3
+        if: inputs.upload_artifacts && runner.os == 'Windows'
+        with:
+          name: omada-backup--${{runner.arch}}-${{ runner.os }}
+          path: target/release/omada_backup.exe
+      - name: Upload build artifact (Linux, OSX)
+        uses: actions/upload-artifact@v3
+        if: inputs.upload_artifacts && runner.os != 'Windows'
+        with:
+          name: omada-backup--${{runner.arch}}-${{ runner.os }}
+          path: target/release/omada_backup

@@ -79,19 +79,15 @@ impl Chip8 {
             0xF0, 0x80, 0xF0, 0x80, 0x80, // F
         ];
 
-        for i in 0..80 {
-            self.memory[i] = SPRITE_FONT[i];
-        }
+        self.memory[0..80].copy_from_slice(&SPRITE_FONT);
     }
 
-    pub fn load_rom(&mut self, rom: &Vec<u8>) {
+    pub fn load_rom(&mut self, rom: &[u8]) {
         if rom.len() > 3584 {
             panic!("Cannot load rom with size greater than 3584 bytes");
         }
 
-        for i in 0..rom.len() {
-            self.memory[0x200 + i] = rom[i];
-        }
+        self.memory[0x200..(rom.len() + 0x200)].copy_from_slice(rom);
     }
 
     pub fn update_timers(&mut self) {
@@ -260,17 +256,16 @@ impl Chip8 {
             (0xD, _, _, _) => {
                 let (start, end) = (
                     self.registers.i as usize,
-                    (self.registers.i + n as u16) as usize,
+                    (self.registers.i + (n as u16)) as usize,
                 );
                 let sprite = &self.memory[start..end];
 
                 let mut was_erased = false;
 
-                for sprite_y in 0..n as usize {
-                    let pixel_row = sprite[sprite_y];
+                for (sprite_y, pixel_row) in sprite.iter().enumerate() {
                     let pixel_y = (vy as usize + sprite_y) % SCREEN_HEIGHT;
 
-                    for sprite_x in 0..8 as usize {
+                    for sprite_x in 0..8_usize {
                         let pixel_x = (vx as usize + sprite_x) % SCREEN_WIDTH;
                         let gfx_idx = (pixel_y * SCREEN_WIDTH) + pixel_x;
 

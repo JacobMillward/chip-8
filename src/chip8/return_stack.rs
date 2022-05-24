@@ -1,10 +1,8 @@
 #[derive(Debug, PartialEq)]
 pub(super) enum StackError {
     Overflow,
-    Underflow
+    Underflow,
 }
-
-
 
 pub(super) struct ReturnStack {
     stack: [u16; 16],
@@ -32,7 +30,6 @@ impl ReturnStack {
     pub fn pop(&mut self) -> Result<u16, StackError> {
         if self.sp == 0 {
             return Err(StackError::Underflow);
-
         }
 
         self.sp -= 1;
@@ -63,10 +60,13 @@ mod tests {
         let result = stack.push(1);
         assert!(result.is_err());
 
-        assert_eq!( match result {
-            Ok(_) => unreachable!(),
-            Err(err) => err
-        }, StackError::Overflow);
+        assert_eq!(
+            match result {
+                Ok(_) => unreachable!(),
+                Err(err) => err,
+            },
+            StackError::Overflow
+        );
     }
 
     #[test]
@@ -76,9 +76,12 @@ mod tests {
         let result = stack.pop();
         assert!(result.is_err());
 
-        assert_eq!( match result {
-            Ok(_) => unreachable!(),
-            Err(err) => err
-        }, StackError::Underflow);
+        assert_eq!(
+            match result {
+                Ok(_) => unreachable!(),
+                Err(err) => err,
+            },
+            StackError::Underflow
+        );
     }
 }

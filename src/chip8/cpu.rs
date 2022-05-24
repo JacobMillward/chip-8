@@ -143,7 +143,9 @@ impl CPU {
             // CALL addr
             (2, _, _, _) => {
                 self.registers.inc_pc();
-                self.return_stack.push(self.registers.pc).expect("Unable to push value to stack");
+                self.return_stack
+                    .push(self.registers.pc)
+                    .expect("Unable to push value to stack");
                 self.registers.pc = nnn;
             }
             // SE Vx, byte

@@ -134,7 +134,7 @@ impl CPU {
             }
             // RET
             (0, 0, 0xE, 0xE) => {
-                self.registers.pc = self.return_stack.pop();
+                self.registers.pc = self.return_stack.pop().unwrap();
             }
             // JP addr
             (1, _, _, _) => {
@@ -143,7 +143,7 @@ impl CPU {
             // CALL addr
             (2, _, _, _) => {
                 self.registers.inc_pc();
-                self.return_stack.push(self.registers.pc);
+                self.return_stack.push(self.registers.pc).expect("Unable to push value to stack");
                 self.registers.pc = nnn;
             }
             // SE Vx, byte

@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 mod chip8;
-use chip8::{Chip8, SCREEN_HEIGHT, SCREEN_WIDTH};
+use chip8::{CPU, SCREEN_HEIGHT, SCREEN_WIDTH};
 use minifb::{Key, Window, WindowOptions};
 
 const CPU_CLOCK_SPEED_HZ: f64 = 500.0;
@@ -16,9 +16,9 @@ fn main() {
     let mut file = File::open("data/Pong.ch8").unwrap();
     let mut data = Vec::<u8>::new();
     file.read_to_end(&mut data).expect("File not found!");
-    let mut chip = Chip8::new();
+    let mut chip8 = CPU::new();
 
-    chip.load_rom(&data);
+    chip8.load_rom(&data);
 
     let mut buffer: Vec<u32> = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
 
@@ -37,17 +37,17 @@ fn main() {
         if (now - last_cpu_update) > target_cpu_update_duration {
             let raw_keys = window.get_keys();
             let keys = get_chip8_keys(raw_keys);
-            chip.set_keys(&keys);
+            chip8.set_keys(&keys);
 
-            chip.execute_cycle();
+            chip8.execute_cycle();
 
             last_cpu_update = now;
         }
 
         if (Instant::now() - last_timer_update) > target_frame_duration {
-            chip.update_timers();
+            chip8.update_timers();
 
-            convert_display_buffer(chip.get_display_buffer(), &mut buffer);
+            convert_display_buffer(chip8.get_display_buffer(), &mut buffer);
 
             window
                 .update_with_buffer(&buffer, SCREEN_WIDTH, SCREEN_HEIGHT)

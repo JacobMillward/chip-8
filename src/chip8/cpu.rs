@@ -246,7 +246,7 @@ impl CPU {
             }
             // RND Vx, byte
             (0xC, _, _, _) => {
-                let random_number = self.rng.gen_range(0, 256) as u8;
+                let random_number = self.rng.gen_range(0..256) as u8;
 
                 self.registers.v[x] = random_number & kk;
                 self.registers.inc_pc();

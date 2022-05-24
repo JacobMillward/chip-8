@@ -4,6 +4,7 @@ description = "Cross-platform Chip8 Emulator built in rust"
 repository = "https://github.com/JacobMillward/omada_backup"
 version = "0.8.0"
 authors = ["Jacob Millward <jacob@millward.dev>"]
+readme = "README.md"
 edition = "2021"
 
 [dependencies]

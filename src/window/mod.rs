@@ -4,6 +4,9 @@ use minifb::{Key, Window, WindowOptions};
 
 use crate::chip8::{CPU, SCREEN_HEIGHT, SCREEN_WIDTH};
 
+mod audio;
+use audio::AudioBuzzer;
+
 const CPU_CLOCK_SPEED_HZ: f64 = 500.0;
 const FRAMERATE_TARGET_HZ: f64 = 60.0;
 
@@ -64,6 +67,8 @@ pub(crate) fn run_chip8_program(data: &[u8]) {
         panic!("{}", e);
     });
 
+    let buzzer = AudioBuzzer::new();
+
     let target_cpu_update_duration: Duration = Duration::from_secs_f64(1_f64 / CPU_CLOCK_SPEED_HZ);
     let target_frame_duration: Duration = Duration::from_secs_f64(1_f64 / FRAMERATE_TARGET_HZ);
     let mut last_cpu_update = Instant::now();
@@ -84,6 +89,10 @@ pub(crate) fn run_chip8_program(data: &[u8]) {
 
         if (Instant::now() - last_timer_update) > target_frame_duration {
             chip8.update_timers();
+
+            if chip8.should_play_sound() {
+                buzzer.play().unwrap();
+            }
 
             convert_display_buffer(chip8.get_display_buffer(), &mut buffer);
 

@@ -29,6 +29,7 @@ pub struct CPU {
     registers: Registers,
     return_stack: ReturnStack,
     timers: Timers,
+    play_sound: bool,
     gfx: [u8; SCREEN_HEIGHT * SCREEN_WIDTH],
     keys: [u8; 16],
     rng: ThreadRng,
@@ -48,6 +49,7 @@ impl CPU {
                 delay_timer: 0,
                 sound_timer: 0,
             },
+            play_sound: false,
             gfx: [0; SCREEN_HEIGHT * SCREEN_WIDTH],
             keys: [0; 16],
             rng: rand::thread_rng(),
@@ -94,9 +96,18 @@ impl CPU {
             self.timers.delay_timer -= 1;
         }
 
+        self.play_sound = false;
         if self.timers.sound_timer > 0 {
             self.timers.sound_timer -= 1;
+
+            if self.timers.sound_timer == 0 {
+                self.play_sound = true;
+            }
         }
+    }
+
+    pub fn should_play_sound(&self) -> bool {
+        self.play_sound
     }
 
     pub fn set_keys(&mut self, keys: &[u8; 16]) {

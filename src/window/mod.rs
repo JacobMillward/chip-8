@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use minifb::{Key, Window, WindowOptions};
 
-use crate::chip8::{CPU, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::chip8::{Cpu, SCREEN_HEIGHT, SCREEN_WIDTH};
 
 mod audio;
 use audio::AudioBuzzer;
@@ -57,7 +57,7 @@ pub(crate) fn get_chip8_keys(keys: Vec<Key>) -> [u8; 16] {
 }
 
 pub(crate) fn run_chip8_program(data: &[u8]) {
-    let mut chip8 = CPU::new();
+    let mut chip8 = Cpu::new();
 
     chip8.load_rom(data);
 

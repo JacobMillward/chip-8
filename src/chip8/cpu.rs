@@ -24,7 +24,7 @@ pub(crate) struct Timers {
     pub(crate) sound_timer: u8,
 }
 
-pub struct CPU {
+pub struct Cpu {
     memory: [u8; 4096],
     registers: Registers,
     return_stack: ReturnStack,
@@ -35,7 +35,7 @@ pub struct CPU {
     rng: ThreadRng,
 }
 
-impl CPU {
+impl Cpu {
     pub fn new() -> Self {
         let mut chip8 = Self {
             memory: [0; 4096],

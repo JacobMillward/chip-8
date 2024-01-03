@@ -1,9 +1,9 @@
 name: Build
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -13,8 +13,8 @@ on:
       release:
         required: false
         type: boolean
-        
-concurrency: 
+
+concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
@@ -30,9 +30,35 @@ jobs:
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-            profile: minimal
-            toolchain: stable
-            default: true
+          profile: minimal
+          toolchain: stable
+          default: true
+
+      - name: Install libasound2-dev (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install libasound2-dev
+
+      - name: cargo build
+        shell: bash
+        run: |
+          if [ ${{inputs.release}} ]; then
+            cargo build --release
+          else
+            cargo build
+          fi
+
+      - name: Upload build artifact (Windows)
+        uses: actions/upload-artifact@v3
+        if: inputs.upload_artifacts && runner.os == 'Windows'
+        with:
+          name: chip8--${{runner.arch}}-${{ runner.os }}
+          path: target/release/chip8.exe
+      - name: Upload build artifact (Linux, OSX)
+        uses: actions/upload-artifact@v3
+        if: inputs.upload_artifacts && runner.os != 'Windows'
+        with:
+          name: chip8--${{runner.arch}}-${{ runner.os }}
+          path: target/release/chip8
 
       - name: cargo build
         shell: bash

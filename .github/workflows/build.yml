@@ -59,25 +59,3 @@ jobs:
         with:
           name: chip8--${{runner.arch}}-${{ runner.os }}
           path: target/release/chip8
-
-      - name: cargo build
-        shell: bash
-        run: |
-          if [ ${{inputs.release}} ]; then
-            cargo build --release
-          else
-            cargo build
-          fi
-
-      - name: Upload build artifact (Windows)
-        uses: actions/upload-artifact@v4
-        if: inputs.upload_artifacts && runner.os == 'Windows'
-        with:
-          name: chip8--${{runner.arch}}-${{ runner.os }}
-          path: target/release/chip8.exe
-      - name: Upload build artifact (Linux, OSX)
-        uses: actions/upload-artifact@v4
-        if: inputs.upload_artifacts && runner.os != 'Windows'
-        with:
-          name: chip8--${{runner.arch}}-${{ runner.os }}
-          path: target/release/chip8

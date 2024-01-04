@@ -2,6 +2,7 @@ use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::num::Wrapping;
 
+use super::audio::AudioBuzzer;
 use super::return_stack::ReturnStack;
 
 use super::SCREEN_HEIGHT;
@@ -24,18 +25,18 @@ pub(crate) struct Timers {
     pub(crate) sound_timer: u8,
 }
 
-pub struct Cpu {
+pub struct Chip8 {
     memory: [u8; 4096],
     registers: Registers,
     return_stack: ReturnStack,
     timers: Timers,
-    play_sound: bool,
+    audio_buzzer: AudioBuzzer,
     gfx: [u8; SCREEN_HEIGHT * SCREEN_WIDTH],
     keys: [u8; 16],
     rng: ThreadRng,
 }
 
-impl Cpu {
+impl Chip8 {
     pub fn new() -> Self {
         let mut chip8 = Self {
             memory: [0; 4096],
@@ -49,7 +50,7 @@ impl Cpu {
                 delay_timer: 0,
                 sound_timer: 0,
             },
-            play_sound: false,
+            audio_buzzer: AudioBuzzer::new(),
             gfx: [0; SCREEN_HEIGHT * SCREEN_WIDTH],
             keys: [0; 16],
             rng: rand::thread_rng(),
@@ -96,18 +97,13 @@ impl Cpu {
             self.timers.delay_timer -= 1;
         }
 
-        self.play_sound = false;
         if self.timers.sound_timer > 0 {
             self.timers.sound_timer -= 1;
 
             if self.timers.sound_timer == 0 {
-                self.play_sound = true;
+                self.audio_buzzer.play().unwrap();
             }
         }
-    }
-
-    pub fn should_play_sound(&self) -> bool {
-        self.play_sound
     }
 
     pub fn set_keys(&mut self, keys: &[u8; 16]) {

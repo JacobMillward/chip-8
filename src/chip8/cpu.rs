@@ -345,20 +345,21 @@ impl Cpu {
             // LD B, Vx
             (0xF, _, 3, 3) => {
                 self.memory[self.registers.i as usize] = vx / 100;
-                self.memory[(self.registers.i + 1) as usize] = (vx / 10) % 10;
-                self.memory[(self.registers.i + 2) as usize] = (vx % 100) % 10;
+                self.memory[(self.registers.i + 1) as usize] = (vx % 100) / 10;
+                self.memory[(self.registers.i + 2) as usize] = vx % 10;
+
                 self.registers.inc_pc();
             }
             // LD [I], Vx
             (0xF, _, 5, 5) => {
-                for idx in 0..x {
+                for idx in 0..=x{
                     self.memory[(self.registers.i + idx as u16) as usize] = self.registers.v[idx];
                 }
                 self.registers.inc_pc();
             }
             // LD Vx, [I]
             (0xF, _, 6, 5) => {
-                for idx in 0..x {
+                for idx in 0..=x {
                     self.registers.v[idx] = self.memory[(self.registers.i + idx as u16) as usize];
                 }
                 self.registers.inc_pc();

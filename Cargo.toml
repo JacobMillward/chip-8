@@ -1,15 +1,14 @@
 [package]
 name = "chip8"
-version = "0.8.0"
 description = "Cross-platform Chip8 Emulator built in rust"
 repository = "https://github.com/JacobMillward/omada_backup"
+version = "0.8.0"
 authors = ["Jacob Millward <jacob@millward.dev>"]
 readme = "README.md"
 edition = "2021"
 
 [dependencies]
+minifb = "0.25"
 rand = "0.8.5"
 clap = { version = "4.4", features = ["derive"] }
 rodio = "0.17.3"
-pixels = "0.13.0"
-ferro-app = { git = "https://github.com/JacobMillward/ferro-app.git", tag = "v0.2.0" }
